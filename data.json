@@ -94,7 +94,14 @@
     {
      "a": "0316",
      "c": "Пекан",
-     "u": "https://aprellshop.ru/catalog/sumka/bolshie-sumki/0316-80"
+     "u": "https://aprellshop.ru/catalog/sumka/bolshie-sumki/0316-80",
+     "i": [
+      "https://aprellshop.ru/assets/cache_image/goods/0316-80/main2721_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/0316-80/ApR20250889_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/0316-80/ApR50905_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/0316-80/ApR0250891_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/0316-80/ApR20250920_680x1054_4a4.jpg"
+     ]
     },
     {
      "a": "V0316",
@@ -493,7 +500,14 @@
     {
      "a": "W4101",
      "c": "Красный",
-     "u": "https://aprellshop.ru/catalog/sumka/bolshie-sumki/w4101-50"
+     "u": "https://aprellshop.ru/catalog/sumka/bolshie-sumki/w4101-50",
+     "i": [
+      "https://aprellshop.ru/assets/cache_image/goods/W4101-50/photo12643_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/W4101-50/677610_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/W4101-50/8017726_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/W4101-50/4517518_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/W4101-50/photo15012_680x1054_4a4.jpg"
+     ]
     },
     {
      "a": "W4101",
@@ -839,7 +853,15 @@
     {
      "a": "W5110",
      "c": "Тёмно-коричневый",
-     "u": "https://aprellshop.ru/catalog/sumka/bolshie-sumki/w5110-92"
+     "u": "https://aprellshop.ru/catalog/sumka/bolshie-sumki/w5110-92",
+     "i": [
+      "https://aprellshop.ru/assets/cache_image/goods/W5110-92/873_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/W5110-92/875_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/W5110-92/876_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/W5110-92/877_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/W5110-92/872_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/W5110-92/871_680x1054_4a4.jpg"
+     ]
     },
     {
      "a": "W5110",
@@ -1544,7 +1566,14 @@
     {
      "a": "7020maxi",
      "c": "Чёрный",
-     "u": "https://aprellshop.ru/catalog/sumka/bolshie-sumki/7020maxi-99"
+     "u": "https://aprellshop.ru/catalog/sumka/bolshie-sumki/7020maxi-99",
+     "i": [
+      "https://aprellshop.ru/assets/cache_image/goods/7020maxi-2/black1254_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7020maxi-2/1soloma2_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7020maxi-2/1soloma3_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7020maxi-2/1261_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7020maxi-2/1270_680x1054_4a4.jpg"
+     ]
     }
    ]
   }
