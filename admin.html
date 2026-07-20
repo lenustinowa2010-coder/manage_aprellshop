@@ -72,6 +72,20 @@ code{background:var(--cream);padding:1px 6px;font-size:13.5px}
 </style>
 </head>
 <body>
+<div id="lock" style="position:fixed;inset:0;background:var(--paper);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="setcard" style="max-width:420px;width:100%;border-top:4px solid var(--burg)">
+    <div style="font-weight:700;font-size:20px;letter-spacing:.2em;color:var(--burg);margin-bottom:2px">APRELL</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">админка базы менеджера</div>
+    <div class="f"><label>Пароль</label><input id="pw" type="password" autocomplete="current-password" autofocus></div>
+    <div class="editbar" style="margin-top:12px">
+      <button class="btn" id="pwBtn" style="flex:1">Войти</button>
+    </div>
+    <div class="status" id="pwStatus"></div>
+    <div class="hintline" style="margin-top:10px">
+      <a href="#" id="pwForgot" style="color:var(--muted)">Забыли пароль?</a>
+    </div>
+  </div>
+</div>
 <header>
   <div class="hrow">
     <div class="logo">APRELL<span>админка базы</span></div>
@@ -150,6 +164,7 @@ code{background:var(--cream);padding:1px 6px;font-size:13.5px}
     <div class="editbar">
       <button class="btn" id="saveCfg">Сохранить настройки</button>
       <button class="btn ghost" id="testCfg">Проверить подключение</button>
+      <button class="btn ghost" id="chpwBtn">Сменить пароль</button>
     </div>
     <div class="hintline">Токен хранится только в этом браузере (localStorage) и никуда, кроме api.github.com, не отправляется. Как создать: GitHub → Settings → Developer settings → Fine-grained tokens → выбрать только этот репозиторий → Permissions → Contents: Read and write.</div>
     <div class="status" id="cfgStatus"></div>
@@ -169,6 +184,75 @@ code{background:var(--cream);padding:1px 6px;font-size:13.5px}
 </main>
 
 <script>
+/* ================= пароль и шифрование ================= */
+const BAKED_PW = {"salt":"f785a7d8a3776d7b2cd35dded62bf26b","hash":"18e17750ac1a368d4d26496cc262bdcf15df4fb31978ee1cefbed8c48bfc6cb9","iter":210000};
+const LS_PW='aprell_admin_pw', LS_TOKEN='aprell_admin_token_enc';
+let SESSION_PW=null, TOKEN=null;
+const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const unhex=s=>new Uint8Array(s.match(/../g).map(x=>parseInt(x,16)));
+const te=new TextEncoder(), td=new TextDecoder();
+async function kdfBits(pw,saltHex,iter){
+  const km=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveBits']);
+  return crypto.subtle.deriveBits({name:'PBKDF2',salt:unhex(saltHex),iterations:iter,hash:'SHA-256'},km,256);
+}
+async function kdfKey(pw,saltHex,iter){
+  const km=await crypto.subtle.importKey('raw',te.encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:unhex(saltHex),iterations:iter,hash:'SHA-256'},km,
+    {name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+function pwRecord(){try{const r=JSON.parse(localStorage.getItem(LS_PW));if(r&&r.hash)return r}catch(e){}return BAKED_PW}
+async function checkPw(pw){const r=pwRecord();return hex(await kdfBits(pw,r.salt,r.iter))===r.hash}
+async function setPw(pw){
+  const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
+  const rec={salt,hash:hex(await kdfBits(pw,salt,210000)),iter:210000};
+  localStorage.setItem(LS_PW,JSON.stringify(rec));
+}
+async function encToken(token,pw){
+  if(!token){localStorage.removeItem(LS_TOKEN);return}
+  const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await kdfKey(pw,salt,210000);
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,te.encode(token));
+  localStorage.setItem(LS_TOKEN,JSON.stringify({salt,iv:hex(iv),ct:hex(ct)}));
+}
+async function decToken(pw){
+  try{
+    const r=JSON.parse(localStorage.getItem(LS_TOKEN)); if(!r)return null;
+    const key=await kdfKey(pw,r.salt,210000);
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unhex(r.iv)},key,unhex(r.ct));
+    return td.decode(pt);
+  }catch(e){return null}
+}
+async function unlock(){
+  const pw=document.getElementById('pw').value;
+  const st=document.getElementById('pwStatus');
+  if(!pw)return;
+  const btn=document.getElementById('pwBtn'); btn.disabled=true; btn.textContent='Проверяю…';
+  const ok=await checkPw(pw);
+  btn.disabled=false; btn.textContent='Войти';
+  if(!ok){st.textContent='Неверный пароль';st.className='status on err';return}
+  SESSION_PW=pw;
+  // миграция: старый нешифрованный токен -> шифруем
+  try{const c=JSON.parse(localStorage.getItem(LS_CFG)||'{}');
+    if(c.token){await encToken(c.token,pw);delete c.token;localStorage.setItem(LS_CFG,JSON.stringify(c));}
+  }catch(e){}
+  TOKEN=await decToken(pw);
+  const tf=document.getElementById('ghToken');
+  if(tf)tf.placeholder=TOKEN?'токен сохранён — введите новый, чтобы заменить':'github_pat_…';
+  document.getElementById('lock').remove();
+  boot();
+}
+document.getElementById('pwBtn').addEventListener('click',unlock);
+document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
+document.getElementById('pwForgot').addEventListener('click',e=>{
+  e.preventDefault();
+  if(confirm('Сброс: пароль вернётся к стартовому, а сохранённый токен GitHub будет стёрт (его нужно будет ввести заново). Продолжить?')){
+    localStorage.removeItem(LS_PW);localStorage.removeItem(LS_TOKEN);
+    document.getElementById('pwStatus').textContent='Сброшено. Войдите со стартовым паролем.';
+    document.getElementById('pwStatus').className='status on info';
+  }
+});
+
 /* ================= данные ================= */
 const LS_DRAFT='aprell_admin_draft', LS_CFG='aprell_admin_cfg';
 const BLANK={models:[],acc:[],mats:[],faq:[],updated:''};
@@ -180,7 +264,8 @@ function status(el,msg,kind){el.textContent=msg;el.className='status on '+kind;i
 function markDirty(){dirty=true;$('#dirty').classList.add('on');saveDraft()}
 function clearDirty(){dirty=false;$('#dirty').classList.remove('on');saveDraft()}
 function saveDraft(){try{localStorage.setItem(LS_DRAFT,JSON.stringify({db:DB,dirty}))}catch(e){}}
-function cfg(){try{return JSON.parse(localStorage.getItem(LS_CFG)||'{}')}catch(e){return{}}}
+function cfg(){let c={};try{c=JSON.parse(localStorage.getItem(LS_CFG)||'{}')}catch(e){}
+  if(TOKEN)c.token=TOKEN; return c}
 
 /* ---------- загрузка при старте ---------- */
 async function boot(){
@@ -402,17 +487,30 @@ $('#pubBtn').addEventListener('click',async()=>{
 
 /* настройки */
 (function(){const c=cfg();$('#ghOwner').value=c.owner||'';$('#ghRepo').value=c.repo||'';
-$('#ghBranch').value=c.branch||'main';$('#ghPath').value=c.path||'';$('#ghToken').value=c.token||''})();
-$('#saveCfg').addEventListener('click',()=>{
+$('#ghBranch').value=c.branch||'main';$('#ghPath').value=c.path||'';$('#ghToken').placeholder=TOKEN?'токен сохранён — введите новый, чтобы заменить':'github_pat_…'})();
+$('#saveCfg').addEventListener('click',async()=>{
   localStorage.setItem(LS_CFG,JSON.stringify({owner:$('#ghOwner').value.trim(),repo:$('#ghRepo').value.trim(),
-    branch:$('#ghBranch').value.trim()||'main',path:$('#ghPath').value.trim(),token:$('#ghToken').value.trim()}));
-  status($('#cfgStatus'),'Настройки сохранены (только в этом браузере).','ok');
+    branch:$('#ghBranch').value.trim()||'main',path:$('#ghPath').value.trim()}));
+  const t=$('#ghToken').value.trim();
+  if(t){TOKEN=t;await encToken(t,SESSION_PW)}
+  status($('#cfgStatus'),'Настройки сохранены (токен зашифрован вашим паролем).','ok');
 });
 $('#testCfg').addEventListener('click',async()=>{
   localStorage.setItem(LS_CFG,JSON.stringify({owner:$('#ghOwner').value.trim(),repo:$('#ghRepo').value.trim(),
-    branch:$('#ghBranch').value.trim()||'main',path:$('#ghPath').value.trim(),token:$('#ghToken').value.trim()}));
+    branch:$('#ghBranch').value.trim()||'main',path:$('#ghPath').value.trim()}));
+  const t=$('#ghToken').value.trim(); if(t){TOKEN=t;await encToken(t,SESSION_PW)}
   try{const r=await ghGet();status($('#cfgStatus'),'Подключение работает ✓ В data.json на GitHub сейчас '+r.json.models.length+' моделей.','ok')}
   catch(err){status($('#cfgStatus'),'Ошибка: '+err.message,'err')}
+});
+
+$('#chpwBtn').addEventListener('click',async()=>{
+  const p1=prompt('Новый пароль (минимум 8 символов):'); if(!p1)return;
+  if(p1.length<8){alert('Слишком короткий — минимум 8 символов');return}
+  const p2=prompt('Повторите новый пароль:'); if(p1!==p2){alert('Пароли не совпадают');return}
+  await setPw(p1);
+  if(TOKEN)await encToken(TOKEN,p1);
+  SESSION_PW=p1;
+  status($('#cfgStatus'),'Пароль изменён для этого браузера. Токен перешифрован.','ok');
 });
 
 /* экспорт / импорт / сброс */
@@ -435,7 +533,6 @@ $('#resetDraft').addEventListener('click',()=>{
   }
 });
 
-boot();
 </script>
 </body>
 </html>
