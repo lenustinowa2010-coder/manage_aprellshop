@@ -806,8 +806,7 @@
       "https://aprellshop.ru/assets/cache_image/assets/cache_image/goods/4630-15/35cleansoft_500x775_8af_387x0_c52.jpg",
       "https://aprellshop.ru/assets/cache_image/assets/cache_image/goods/4630-15/web15042652_500x775_8af_387x0_c52.jpg"
      ],
-     "price": 10900,
-     "oos": true
+     "price": 5290
     },
     {
      "a": "S4630",
@@ -1908,7 +1907,36 @@
    "features": "сумка, построенная на балансе живой фактуры и лаконичного силуэта. Плетёная основа делает ее визуально лёгкой, а кожаная отделка собирает силуэт и добавляет изделию характер.Вещь, которая спокойно встраивается в повседневный гардероб и становится его продолжением. Она одинаково естественно смотрится с денимом, трикотажем, рубашкой или платьем. Mini-формат подойдет для тех случаев, когда с собой нужно взять самое важное. Лёгкая неоднородность оттенка, узелки и вкрапления --- естественные особенности натурального материала.",
    "video": "https://vk.com/clip-174823051_456239462",
    "answer": "Добрый день ✨\nМеня зовут [Сделка ответственный] , буду рада вам помочь🧡\n\nМодель 7010. Высылаю видеообзор: https://vk.com/clip-174823051_456239462\n\nСумка представлена с черной и коричневой отделкой.\nСтоимость - 13 900₽. \n\nИдеальный вариант для отпуска и города: в поездке — лёгкая сумка для пляжа и прогулок, в повседневной жизни — стильный летний аксессуар для casual-образов. Компактная, удобная и очень атмосферная. Хлопковую косметичку внутри удобно использовать отдельно — например, в чемодане для хранения мелочей.\n\nКакой цвет вам ближе?✨🫶🏻",
-   "status": ""
+   "status": "",
+   "site": [
+    {
+     "a": "7010mini",
+     "c": "Коричневый",
+     "u": "https://aprellshop.ru/catalog/sumka/mini-sumki/7010mini-80",
+     "i": [
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-1/new121211_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-1/soloma87_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-1/soloma54_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-1/1189_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-1/1163_680x1054_4a4.jpg"
+     ],
+     "price": 13900
+    },
+    {
+     "a": "7010mini",
+     "c": "Чёрный",
+     "u": "https://aprellshop.ru/catalog/sumka/mini-sumki/7010mini-99",
+     "i": [
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-2/newblack8_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-2/soloma49_680x1054_a18.png",
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-2/soloma67_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-2/1080_680x1054_4a4.jpg",
+      "https://aprellshop.ru/assets/cache_image/goods/7010mini-2/1082_680x1054_4a4.jpg"
+     ],
+     "price": 12590,
+     "oldPrice": 13900
+    }
+   ]
   },
   {
    "art": "7020",
