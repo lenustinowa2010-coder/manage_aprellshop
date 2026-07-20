@@ -45,6 +45,19 @@ ANY_PRICE_RE = re.compile(r'(\d[\d\s\u00a0]{2,})\s*(?:&nbsp;)?\s*(?:₽|руб)'
 # Берём всё содержимое тега и вытаскиваем из него число с ₽/руб.
 OLD_PRICE_RE = re.compile(r'<(del|s)\b[^>]*>(.*?)</\1>', re.IGNORECASE | re.DOTALL)
 
+# Наличие: мета product:availability + подстраховка по тексту кнопки.
+AVAIL_META_RE = re.compile(
+    r'product:availability["\']\s+content=["\']\s*([^"\']+)', re.IGNORECASE)
+OOS_TEXT_RE = re.compile(
+    r'Узнать о поступлении|Нет в наличии|out ?of ?stock', re.IGNORECASE)
+
+
+def in_stock(html: str) -> bool:
+    m = AVAIL_META_RE.search(html)
+    if m:
+        return "in stock" in m.group(1).lower()  # 'in stock' / 'out of stock'
+    return not OOS_TEXT_RE.search(html)
+
 
 def to_int(raw: str) -> int:
     return int(re.sub(r'[\s\u00a0]', '', raw))
@@ -121,7 +134,26 @@ def main() -> None:
     for v in variants:
         label = f"{v.get('a','?')} · {v.get('c','?')}"
         try:
-            price, old = parse_prices(fetch(v["u"]))
+            html = fetch(v["u"])
+            price, old = parse_prices(html)
+            stock = in_stock(html)
+
+            # Нет в наличии: помечаем, цену НЕ перезаписываем (мета часто отдаёт
+            # мусорную остаточную цену без скидки). Оставляем прежнюю из базы.
+            if not stock:
+                if v.get("oos") is not True:
+                    changes.append((label + " — НЕТ В НАЛИЧИИ",
+                                    v.get("price"), v.get("oldPrice"),
+                                    v.get("price"), v.get("oldPrice")))
+                    print(f"  · {label}: нет в наличии (цену оставила прежней)")
+                v["oos"] = True
+                time.sleep(1.5)
+                continue
+            # Появился снова в наличии — снимаем пометку.
+            if v.get("oos"):
+                v.pop("oos", None)
+                print(f"  · {label}: снова в наличии")
+
             if price is None:
                 fails.append(f"{label}: цену не нашла — проверь {v['u']}")
                 print(f"  ! {label}: цена не распознана")
