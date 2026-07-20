@@ -74,6 +74,11 @@ p{margin:0 0 10px}
 .photos .pl{position:absolute; left:0; bottom:0; right:0; font-size:10.5px; background:rgba(22,20,18,.72); color:#fff; padding:2px 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px}
 .chip{font-size:13px; font-weight:600; text-decoration:none; color:var(--burg); border:1.5px solid var(--burg); padding:4px 10px; white-space:nowrap}
+.chip .cp{font-weight:700; margin-left:6px}
+.chip .co{font-weight:400; text-decoration:line-through; opacity:.6; margin-left:5px; font-size:12px}
+.chip .cv{display:block; font-size:10.5px; font-weight:600; letter-spacing:.02em; opacity:.75; white-space:normal; margin-top:2px}
+.chip.sale{border-color:#8a1f0f}
+.chip.sale .cp{color:#8a1f0f}
 .chip:hover{background:var(--burg); color:#fff}
 .chips-label{font-size:11.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600; width:100%; margin-bottom:-2px}
 .status{display:inline-block; font-size:12.5px; color:#8a5b00; background:#fdf3dc; padding:2px 8px; margin-left:8px; vertical-align:middle}
@@ -366,6 +371,15 @@ function buildIndex(){
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function fmtPrice(it){
+  // если у цветов проставлены свои цены — показываем по ним (одну или диапазон)
+  const ps = (it.site||[]).map(v=>v.price).filter(x=>typeof x==='number');
+  if(ps.length){
+    const lo=Math.min(...ps), hi=Math.max(...ps);
+    const r = lo===hi ? lo.toLocaleString('ru-RU')+' ₽'
+                      : 'от '+lo.toLocaleString('ru-RU')+' ₽';
+    const anySale = (it.site||[]).some(v=>v.oldPrice && v.price && v.oldPrice>v.price);
+    return r + (anySale ? ' · есть SALE' : '');
+  }
   if(it.price) return it.price.toLocaleString('ru-RU') + ' ₽';
   return it.priceRaw ? esc(it.priceRaw) : '';
 }
@@ -394,7 +408,14 @@ function cardHTML(it, i, open){
       ).join('') + '</div>';
     }
     body += '<div class="chips"><span class="chips-label">На aprellshop.ru — актуальные цены и все фото</span>' +
-      it.site.map(v=>`<a class="chip" href="${esc(v.u)}" target="_blank" rel="noopener">${esc(v.a)} · ${esc(v.c)}</a>`).join('') + '</div>';
+      it.site.map(v=>{
+        const sale = v.oldPrice && v.price && v.oldPrice > v.price;
+        const cp = v.price ? `<span class="cp">${v.price.toLocaleString('ru-RU')} ₽</span>` : '';
+        const co = sale ? `<span class="co">${v.oldPrice.toLocaleString('ru-RU')} ₽</span>` : '';
+        const cv = v.version ? `<span class="cv">${esc(v.version)}</span>` : '';
+        return `<a class="chip${sale?' sale':''}" href="${esc(v.u)}" target="_blank" rel="noopener">`+
+               `${esc(v.a)} · ${esc(v.c)}${cp}${co}${cv}</a>`;
+      }).join('') + '</div>';
   }
   body += '<div class="grid">'
     + kv('Цвета', it.colors) + kv('Материал', it.material) + kv('Подкладка', it.lining)
