@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APRELL — админка базы</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--burg:#5E1622;--burg-dark:#47101a;--cream:#F1EEE9;--sky:#8FA8BE;--ink:#161412;
+--paper:#FBFAF7;--line:#E2DCD2;--muted:#7a746c;--ok:#2e6b3f;--err:#a4262c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Futura PT','Jost',sans-serif;background:var(--paper);color:var(--ink);font-size:15.5px;line-height:1.5}
+button,input,textarea,select{font-family:inherit;font-size:inherit}
+header{background:var(--burg);color:#fff;position:sticky;top:0;z-index:50}
+.hrow{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:20px;padding:0 20px;flex-wrap:wrap}
+.logo{font-weight:700;font-size:20px;letter-spacing:.2em;padding:12px 0}
+.logo span{font-weight:400;letter-spacing:.05em;font-size:11.5px;opacity:.75;display:block;margin-top:-2px}
+nav{display:flex;gap:2px;overflow-x:auto}
+nav button{background:none;border:none;color:#fff;padding:18px 13px;font-size:14px;font-weight:500;opacity:.75;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav button.active{opacity:1;border-bottom-color:var(--sky)}
+.pubzone{margin-left:auto;display:flex;gap:8px;align-items:center;padding:8px 0}
+.dirty{font-size:12.5px;background:#fdf3dc;color:#8a5b00;padding:3px 9px;display:none}
+.dirty.on{display:inline-block}
+.btn{background:var(--burg);color:#fff;border:none;padding:9px 16px;font-weight:600;cursor:pointer;letter-spacing:.02em}
+.btn:hover{background:var(--burg-dark)}
+.btn.pub{background:#fff;color:var(--burg)}
+.btn.pub:hover{background:var(--cream)}
+.btn.ghost{background:transparent;color:var(--burg);border:1.5px solid var(--burg);padding:7px 14px}
+.btn.ghost:hover{background:var(--burg);color:#fff}
+.btn.danger{background:transparent;color:var(--err);border:1.5px solid var(--err)}
+.btn.danger:hover{background:var(--err);color:#fff}
+.btn.sm{padding:5px 11px;font-size:13.5px}
+main{max-width:1100px;margin:0 auto;padding:24px 20px 100px}
+.page{display:none}.page.active{display:block}
+h1{font-size:23px;font-weight:600;margin-bottom:4px}
+.sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+h2{font-size:17px;font-weight:600;color:var(--burg);margin:24px 0 10px}
+.toolbar{display:flex;gap:10px;margin:14px 0;flex-wrap:wrap;align-items:center}
+.toolbar input[type=search]{flex:1;min-width:200px;padding:10px 14px;border:1.5px solid var(--ink);background:#fff}
+.toolbar input:focus{outline:none;border-color:var(--burg)}
+.list{background:#fff;border:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.row:last-child{border-bottom:none}
+.row:hover{background:var(--cream)}
+.row .a{font-weight:700;font-size:16px;min-width:70px;letter-spacing:.04em}
+.row .m{color:var(--muted);font-size:13.5px;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.row .p{font-weight:600;white-space:nowrap}
+.tagoff{font-size:11px;background:var(--sky);color:#fff;padding:2px 7px;font-weight:600;letter-spacing:.04em}
+/* формы */
+.editor{background:#fff;border:1px solid var(--line);border-top:3px solid var(--burg);padding:18px 20px;margin:14px 0}
+.frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:12px}
+.f label{display:block;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:3px}
+.f input,.f select,.f textarea{width:100%;padding:8px 11px;border:1px solid #c9c2b8;background:#fff}
+.f input:focus,.f textarea:focus,.f select:focus{outline:none;border-color:var(--burg);box-shadow:0 0 0 2px rgba(94,22,34,.1)}
+.f textarea{resize:vertical;min-height:70px}
+.f.full{grid-column:1/-1}
+.editbar{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.hintline{font-size:13px;color:var(--muted);margin-top:6px}
+/* настройки */
+.setcard{background:#fff;border:1px solid var(--line);padding:18px 20px;margin-bottom:16px}
+.status{padding:10px 14px;margin:12px 0;font-size:14.5px;display:none}
+.status.on{display:block}
+.status.ok{background:#e8f2ea;color:var(--ok)}
+.status.err{background:#fbeaea;color:var(--err)}
+.status.info{background:var(--cream);color:var(--ink)}
+.note{background:var(--cream);border-left:4px solid var(--burg);padding:11px 15px;margin:12px 0;font-size:14px}
+code{background:var(--cream);padding:1px 6px;font-size:13.5px}
+.empty{padding:34px;text-align:center;color:var(--muted)}
+@media(max-width:720px){.hrow{padding:0 12px}.pubzone{margin-left:0;width:100%;justify-content:flex-end}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div class="logo">APRELL<span>админка базы</span></div>
+    <nav id="nav">
+      <button class="active" data-p="models">Модели</button>
+      <button data-p="acc">Аксессуары и офлайн</button>
+      <button data-p="faq">FAQ</button>
+      <button data-p="mats">Материалы</button>
+      <button data-p="pub">Публикация и настройки</button>
+    </nav>
+    <div class="pubzone">
+      <span class="dirty" id="dirty">есть неопубликованные изменения</span>
+      <button class="btn pub" id="pubBtn">Опубликовать на сайт</button>
+    </div>
+  </div>
+</header>
+<main>
+<div class="status" id="topStatus"></div>
+
+<!-- ===== МОДЕЛИ ===== -->
+<section class="page active" id="p-models">
+  <h1>Модели</h1>
+  <div class="sub">Карточки, которые находит поиск на сайте. Изменения сохраняются в черновик сразу; на сайт попадают после «Опубликовать».</div>
+  <div class="toolbar">
+    <input type="search" id="mq" placeholder="Найти по артикулу или слову…">
+    <button class="btn" data-add="models">+ Добавить модель</button>
+  </div>
+  <div id="mEditor"></div>
+  <div class="list" id="mList"></div>
+</section>
+
+<!-- ===== АКСЕССУАРЫ ===== -->
+<section class="page" id="p-acc">
+  <h1>Аксессуары и офлайн</h1>
+  <div class="sub">Подвесы, перчатки, кошельки и модели «только в бутиках».</div>
+  <div class="toolbar">
+    <input type="search" id="aq" placeholder="Найти…">
+    <button class="btn" data-add="acc">+ Добавить позицию</button>
+  </div>
+  <div id="aEditor"></div>
+  <div class="list" id="aList"></div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="page" id="p-faq">
+  <h1>FAQ — формулировки</h1>
+  <div class="sub">Правило пополнения: искали ответ дольше двух минут — добавляем его сюда.</div>
+  <div class="toolbar"><button class="btn" data-add="faq">+ Добавить вопрос</button></div>
+  <div id="fEditor"></div>
+  <div class="list" id="fList"></div>
+</section>
+
+<!-- ===== МАТЕРИАЛЫ ===== -->
+<section class="page" id="p-mats">
+  <h1>Материалы и уход</h1>
+  <div class="toolbar"><button class="btn" data-add="mats">+ Добавить материал</button></div>
+  <div id="matEditor"></div>
+  <div class="list" id="matList"></div>
+</section>
+
+<!-- ===== ПУБЛИКАЦИЯ ===== -->
+<section class="page" id="p-pub">
+  <h1>Публикация и настройки</h1>
+  <div class="sub">Данные сайта лежат в файле <code>data.json</code> рядом с <code>index.html</code>. Админка умеет обновлять его в GitHub сама.</div>
+
+  <div class="setcard">
+    <h2 style="margin-top:0">Подключение к GitHub</h2>
+    <div class="frow">
+      <div class="f"><label>Владелец (owner)</label><input id="ghOwner" placeholder="lenustinowa2010-coder"></div>
+      <div class="f"><label>Репозиторий</label><input id="ghRepo" placeholder="lenustinowa2010-coder.github.io"></div>
+      <div class="f"><label>Ветка</label><input id="ghBranch" placeholder="main"></div>
+      <div class="f"><label>Путь к data.json</label><input id="ghPath" placeholder="aprell/base/data.json"></div>
+      <div class="f full"><label>Токен GitHub (fine-grained, доступ Contents: Read and write только к этому репозиторию)</label>
+        <input id="ghToken" type="password" placeholder="github_pat_…"></div>
+    </div>
+    <div class="editbar">
+      <button class="btn" id="saveCfg">Сохранить настройки</button>
+      <button class="btn ghost" id="testCfg">Проверить подключение</button>
+    </div>
+    <div class="hintline">Токен хранится только в этом браузере (localStorage) и никуда, кроме api.github.com, не отправляется. Как создать: GitHub → Settings → Developer settings → Fine-grained tokens → выбрать только этот репозиторий → Permissions → Contents: Read and write.</div>
+    <div class="status" id="cfgStatus"></div>
+  </div>
+
+  <div class="setcard">
+    <h2 style="margin-top:0">Без GitHub — вручную</h2>
+    <p>Скачайте обновлённый <code>data.json</code> и загрузите его в репозиторий сами (GitHub → папка с сайтом → Add file → Upload files → заменить data.json).</p>
+    <div class="editbar">
+      <button class="btn ghost" id="expBtn">Скачать data.json</button>
+      <label class="btn ghost" style="display:inline-block;cursor:pointer">Загрузить data.json в админку<input type="file" id="impFile" accept=".json" style="display:none"></label>
+      <button class="btn danger" id="resetDraft">Сбросить черновик</button>
+    </div>
+    <div class="hintline">«Загрузить в админку» — если редактировали на другом устройстве и хотите продолжить здесь.</div>
+  </div>
+</section>
+</main>
+
+<script>
+/* ================= данные ================= */
+const LS_DRAFT='aprell_admin_draft', LS_CFG='aprell_admin_cfg';
+const BLANK={models:[],acc:[],mats:[],faq:[],updated:''};
+let DB=null, dirty=false, editIdx={models:null,acc:null,faq:null,mats:null};
+
+const $=s=>document.querySelector(s);
+function esc(s){return (s??'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function status(el,msg,kind){el.textContent=msg;el.className='status on '+kind;if(kind!=='err')setTimeout(()=>el.className='status',5000)}
+function markDirty(){dirty=true;$('#dirty').classList.add('on');saveDraft()}
+function clearDirty(){dirty=false;$('#dirty').classList.remove('on');saveDraft()}
+function saveDraft(){try{localStorage.setItem(LS_DRAFT,JSON.stringify({db:DB,dirty}))}catch(e){}}
+function cfg(){try{return JSON.parse(localStorage.getItem(LS_CFG)||'{}')}catch(e){return{}}}
+
+/* ---------- загрузка при старте ---------- */
+async function boot(){
+  const draft=(()=>{try{return JSON.parse(localStorage.getItem(LS_DRAFT))}catch(e){return null}})();
+  if(draft&&draft.db&&draft.db.models){DB=draft.db;dirty=!!draft.dirty;if(dirty)$('#dirty').classList.add('on');
+    status($('#topStatus'),'Загружен черновик из этого браузера.','info');renderAll();return}
+  // пробуем GitHub, затем локальный data.json
+  const c=cfg();
+  if(c.token&&c.owner&&c.repo&&c.path){
+    try{DB=(await ghGet()).json;status($('#topStatus'),'Данные загружены из GitHub.','ok');renderAll();saveDraft();return}catch(e){}
+  }
+  try{const r=await fetch('data.json?v='+Date.now());if(r.ok){DB=await r.json();renderAll();saveDraft();return}}catch(e){}
+  DB=JSON.parse(JSON.stringify(BLANK));renderAll();
+  status($('#topStatus'),'Данные не найдены: настройте GitHub на вкладке «Публикация» или загрузите data.json вручную.','info');
+}
+
+/* ================= GitHub API ================= */
+function ghUrl(){const c=cfg();return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${c.path}`}
+function ghHeaders(){return {'Authorization':'Bearer '+cfg().token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}
+async function ghGet(){
+  const c=cfg();
+  const r=await fetch(ghUrl()+'?ref='+encodeURIComponent(c.branch||'main'),{headers:ghHeaders()});
+  if(!r.ok)throw new Error('GitHub: '+r.status+' '+(r.status===404?'файл или репозиторий не найден':r.status===401?'токен не подходит':''));
+  const j=await r.json();
+  const text=decodeURIComponent(escape(atob(j.content.replace(/\n/g,''))));
+  return {sha:j.sha,json:JSON.parse(text)};
+}
+async function ghPut(obj){
+  const c=cfg();
+  let sha=null;
+  try{sha=(await ghGet()).sha}catch(e){/* файла ещё нет — создадим */}
+  obj.updated=new Date().toISOString().slice(0,10);
+  const content=btoa(unescape(encodeURIComponent(JSON.stringify(obj,null,1))));
+  const body={message:'База менеджера: обновление из админки',content,branch:c.branch||'main'};
+  if(sha)body.sha=sha;
+  const r=await fetch(ghUrl(),{method:'PUT',headers:{...ghHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){const t=await r.text();throw new Error('GitHub: '+r.status+' — '+t.slice(0,120))}
+}
+
+/* ================= навигация ================= */
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x===b));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  $('#p-'+b.dataset.p).classList.add('active');
+}));
+
+/* ================= рендер списков ================= */
+function fmtP(x){return x.price?Number(x.price).toLocaleString('ru-RU')+' ₽':(x.priceRaw||'')}
+function renderModels(){
+  const v=($('#mq').value||'').toLowerCase();
+  const rows=DB.models.map((m,i)=>({m,i})).filter(({m})=>!v||[m.art,m.full,m.colors,m.material,m.cat].join(' ').toLowerCase().includes(v));
+  $('#mList').innerHTML=rows.length?rows.map(({m,i})=>`
+    <div class="row" data-edit="models" data-i="${i}">
+      <span class="a">${esc(m.art)}</span>
+      <span class="m">${esc([m.cat,m.colors,m.material].filter(Boolean).join(' · '))}</span>
+      <span class="p">${fmtP(m)}</span>
+    </div>`).join(''):'<div class="empty">Пусто</div>';
+}
+function renderAcc(){
+  const v=($('#aq').value||'').toLowerCase();
+  const rows=DB.acc.map((m,i)=>({m,i})).filter(({m})=>!v||[m.art,m.colors,m.material].join(' ').toLowerCase().includes(v));
+  $('#aList').innerHTML=rows.length?rows.map(({m,i})=>`
+    <div class="row" data-edit="acc" data-i="${i}">
+      <span class="a" style="min-width:150px">${esc(m.art)}</span>
+      ${m.offline?'<span class="tagoff">офлайн</span>':''}
+      <span class="m">${esc([m.colors,m.material].filter(Boolean).join(' · '))}</span>
+      <span class="p">${fmtP(m)}</span>
+    </div>`).join(''):'<div class="empty">Пусто</div>';
+}
+function renderFaqL(){
+  $('#fList').innerHTML=DB.faq.length?DB.faq.map((f,i)=>`
+    <div class="row" data-edit="faq" data-i="${i}">
+      <span class="a" style="min-width:100px;font-size:12px;letter-spacing:.06em;color:var(--sky)">${esc(f[0]).toUpperCase()}</span>
+      <span class="m" style="color:var(--ink);font-weight:500">${esc(f[1])}</span>
+    </div>`).join(''):'<div class="empty">Пусто</div>';
+}
+function renderMatsL(){
+  $('#matList').innerHTML=DB.mats.length?DB.mats.map((m,i)=>`
+    <div class="row" data-edit="mats" data-i="${i}">
+      <span class="a" style="min-width:180px">${esc(m[0])}</span>
+      <span class="m">${esc(m[1])}</span>
+    </div>`).join(''):'<div class="empty">Пусто</div>';
+}
+function renderAll(){renderModels();renderAcc();renderFaqL();renderMatsL()}
+$('#mq').addEventListener('input',renderModels);
+$('#aq').addEventListener('input',renderAcc);
+
+/* ================= формы ================= */
+const F=(label,name,val,full,ta,rows)=>`<div class="f${full?' full':''}"><label>${label}</label>${
+  ta?`<textarea name="${name}" rows="${rows||3}">${esc(val)}</textarea>`
+    :`<input name="${name}" value="${esc(val)}">`}</div>`;
+
+function modelForm(m,kind,i){
+  const isNew=i===null;
+  const catOpts=['','S — мини','M мягкая','M жёсткая','L большая','XL','Вечерняя'];
+  return `<form class="editor" data-kind="${kind}" data-i="${i??''}">
+    <div class="frow">
+      ${F('Артикул (как ищут)','art',m.art||'')}
+      ${kind==='models'?F('Артикул полный (W…, S…)','full',m.full||''):''}
+      ${kind==='models'?`<div class="f"><label>Категория</label><select name="cat">${catOpts.map(c=>`<option${c===(m.cat||'')?' selected':''}>${c}</option>`).join('')}</select></div>`:''}
+      ${F('Цена базовая, ₽','price',m.price||'')}
+      ${kind==='acc'?`<div class="f"><label>Только офлайн</label><select name="offline"><option value="">нет</option><option value="1"${m.offline?' selected':''}>да</option></select></div>`:''}
+    </div>
+    <div class="frow">
+      ${F('Цвета','colors',m.colors||'',true)}
+      ${F('Материал','material',m.material||'')}
+      ${F('Подкладка','lining',m.lining||'')}
+    </div>
+    ${kind==='models'?`<div class="frow">
+      ${F('Ремешок / ручки','strap',m.strap||'',true)}
+      ${F('Размеры В/Д/Ш, см','dims',m.dims||'')}
+      ${F('Вес','weight',m.weight||'')}
+    </div>`:''}
+    <div class="frow">${F('Особенности и вместимость','features',m.features||'',true,true,3)}</div>
+    ${kind==='models'?`<div class="frow">
+      ${F('Ссылка на видеообзор','video',m.video||'',true)}
+      ${F('Готовый первый ответ клиентке','answer',m.answer||'',true,true,8)}
+      ${F('Пометка для отдела продаж (например: «переписать»)','status',m.status||'',true)}
+    </div>`:''}
+    <div class="editbar">
+      <button class="btn" type="submit">Сохранить в черновик</button>
+      <button class="btn ghost" type="button" data-cancel>Отмена</button>
+      ${isNew?'':'<button class="btn danger" type="button" data-del>Удалить</button>'}
+    </div>
+    <div class="hintline">После сохранения не забудьте «Опубликовать на сайт» вверху страницы.</div>
+  </form>`;
+}
+function faqForm(f,i){
+  return `<form class="editor" data-kind="faq" data-i="${i??''}">
+    <div class="frow">
+      ${F('Тема (Цвет / Материал / Уход / Параметры / Цена…)','t0',f[0]||'')}
+      ${F('Вопрос клиентки','t1',f[1]||'',true)}
+    </div>
+    <div class="frow">${F('Готовая формулировка','t2',f[2]||'',true,true,5)}</div>
+    <div class="editbar">
+      <button class="btn" type="submit">Сохранить в черновик</button>
+      <button class="btn ghost" type="button" data-cancel>Отмена</button>
+      ${i===null?'':'<button class="btn danger" type="button" data-del>Удалить</button>'}
+    </div></form>`;
+}
+function matForm(m,i){
+  return `<form class="editor" data-kind="mats" data-i="${i??''}">
+    <div class="frow">${F('Название материала','t0',m[0]||'',true)}</div>
+    <div class="frow">${F('Как рассказать клиентке','t1',m[1]||'',true,true,3)}</div>
+    <div class="frow">${F('Честно про минусы','t2',m[2]||'',true,true,2)}</div>
+    <div class="frow">${F('Уход — кратко','t3',m[3]||'',true,true,3)}</div>
+    <div class="frow">${F('Средства Collonil','t4',m[4]||'',true)}</div>
+    <div class="editbar">
+      <button class="btn" type="submit">Сохранить в черновик</button>
+      <button class="btn ghost" type="button" data-cancel>Отмена</button>
+      ${i===null?'':'<button class="btn danger" type="button" data-del>Удалить</button>'}
+    </div></form>`;
+}
+const editorBox={models:'#mEditor',acc:'#aEditor',faq:'#fEditor',mats:'#matEditor'};
+function openEditor(kind,i){
+  const box=$(editorBox[kind]);
+  if(kind==='faq')box.innerHTML=faqForm(i===null?['','',''] : DB.faq[i],i);
+  else if(kind==='mats')box.innerHTML=matForm(i===null?['','','','','']:DB.mats[i],i);
+  else box.innerHTML=modelForm(i===null?{}:DB[kind][i],kind,i);
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.addEventListener('click',e=>{
+  const add=e.target.closest('[data-add]'); if(add){openEditor(add.dataset.add,null);return}
+  const row=e.target.closest('[data-edit]'); if(row){openEditor(row.dataset.edit,+row.dataset.i);return}
+  if(e.target.closest('[data-cancel]')){e.target.closest('.editor').remove();return}
+  const del=e.target.closest('[data-del]');
+  if(del){
+    const form=del.closest('form'),kind=form.dataset.kind,i=+form.dataset.i;
+    const name=kind==='faq'?DB.faq[i][1]:kind==='mats'?DB.mats[i][0]:DB[kind][i].art;
+    if(confirm('Удалить «'+name+'»? Изменение попадёт на сайт после публикации.')){
+      DB[kind].splice(i,1);form.remove();markDirty();renderAll();
+    }
+  }
+});
+document.addEventListener('submit',e=>{
+  e.preventDefault();
+  const form=e.target,kind=form.dataset.kind,i=form.dataset.i===''?null:+form.dataset.i;
+  const g=n=>{const el=form.querySelector('[name='+n+']');return el?el.value.trim():''};
+  if(kind==='faq'){
+    const item=[g('t0'),g('t1'),g('t2')];
+    if(!item[1]){alert('Заполните вопрос');return}
+    i===null?DB.faq.push(item):DB.faq[i]=item;
+  }else if(kind==='mats'){
+    const item=[g('t0'),g('t1'),g('t2'),g('t3'),g('t4')];
+    if(!item[0]){alert('Заполните название');return}
+    i===null?DB.mats.push(item):DB.mats[i]=item;
+  }else{
+    if(!g('art')){alert('Заполните артикул');return}
+    const base=i===null?{}:DB[kind][i];
+    const item={...base,art:g('art'),colors:g('colors'),material:g('material'),lining:g('lining'),
+      features:g('features'),price:g('price')?+g('price').replace(/\D/g,''):null,priceRaw:''};
+    if(kind==='models'){Object.assign(item,{full:g('full'),cat:g('cat'),strap:g('strap'),dims:g('dims'),
+      weight:g('weight'),video:g('video'),answer:g('answer'),status:g('status')})}
+    else item.offline=!!g('offline');
+    i===null?DB[kind].push(item):DB[kind][i]=item;
+  }
+  form.remove();markDirty();renderAll();
+  status($('#topStatus'),'Сохранено в черновик. Чтобы изменения появились на сайте — «Опубликовать на сайт».','ok');
+});
+
+/* ================= публикация ================= */
+$('#pubBtn').addEventListener('click',async()=>{
+  const c=cfg();
+  if(!(c.token&&c.owner&&c.repo&&c.path)){
+    document.querySelector('[data-p=pub]').click();
+    status($('#cfgStatus'),'Сначала заполните настройки GitHub — или скачайте data.json и загрузите вручную.','info');
+    return;
+  }
+  $('#pubBtn').disabled=true;$('#pubBtn').textContent='Публикуем…';
+  try{
+    await ghPut(DB);clearDirty();
+    status($('#topStatus'),'Опубликовано ✓ Сайт обновится в течение минуты-двух (GitHub Pages пересобирает страницу).','ok');
+  }catch(err){
+    status($('#topStatus'),'Не получилось: '+err.message,'err');
+  }
+  $('#pubBtn').disabled=false;$('#pubBtn').textContent='Опубликовать на сайт';
+});
+
+/* настройки */
+(function(){const c=cfg();$('#ghOwner').value=c.owner||'';$('#ghRepo').value=c.repo||'';
+$('#ghBranch').value=c.branch||'main';$('#ghPath').value=c.path||'';$('#ghToken').value=c.token||''})();
+$('#saveCfg').addEventListener('click',()=>{
+  localStorage.setItem(LS_CFG,JSON.stringify({owner:$('#ghOwner').value.trim(),repo:$('#ghRepo').value.trim(),
+    branch:$('#ghBranch').value.trim()||'main',path:$('#ghPath').value.trim(),token:$('#ghToken').value.trim()}));
+  status($('#cfgStatus'),'Настройки сохранены (только в этом браузере).','ok');
+});
+$('#testCfg').addEventListener('click',async()=>{
+  localStorage.setItem(LS_CFG,JSON.stringify({owner:$('#ghOwner').value.trim(),repo:$('#ghRepo').value.trim(),
+    branch:$('#ghBranch').value.trim()||'main',path:$('#ghPath').value.trim(),token:$('#ghToken').value.trim()}));
+  try{const r=await ghGet();status($('#cfgStatus'),'Подключение работает ✓ В data.json на GitHub сейчас '+r.json.models.length+' моделей.','ok')}
+  catch(err){status($('#cfgStatus'),'Ошибка: '+err.message,'err')}
+});
+
+/* экспорт / импорт / сброс */
+$('#expBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify({...DB,updated:new Date().toISOString().slice(0,10)},null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data.json';a.click();
+});
+$('#impFile').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{try{const j=JSON.parse(rd.result);
+    if(!j.models)throw 0;DB=j;markDirty();renderAll();
+    status($('#topStatus'),'Файл загружен в черновик ('+j.models.length+' моделей). Проверьте и опубликуйте.','ok');
+  }catch(err){status($('#topStatus'),'Это не похоже на data.json базы.','err')}};
+  rd.readAsText(f);e.target.value='';
+});
+$('#resetDraft').addEventListener('click',()=>{
+  if(confirm('Сбросить черновик? Несохранённые правки в этом браузере пропадут; данные на сайте не тронутся.')){
+    localStorage.removeItem(LS_DRAFT);location.reload();
+  }
+});
+
+boot();
+</script>
+</body>
+</html>
