@@ -1,0 +1,27 @@
+APRELL — ссылки на средства Collonil
+
+Обработано карточек материалов: 6.
+
+Карта ссылок:
+  waterstop spray      → https://aprellshop.ru/catalog/uxod-za-kozhej/sredstvo-po-uxodu/waterstop-spray-400
+  clean and care       → https://aprellshop.ru/catalog/uxod-za-kozhej/sredstvo-po-uxodu/clean-and-care
+  auftragsbürste       → — НЕ НАЙДЕНО на сайте
+  clean & care         → https://aprellshop.ru/catalog/uxod-za-kozhej/sredstvo-po-uxodu/clean-and-care
+  lack polish          → — НЕ НАЙДЕНО на сайте
+  leather gel          → https://aprellshop.ru/catalog/uxod-za-kozhej/sredstvo-po-uxodu/leather-gel
+  glanzbürste          → — НЕ НАЙДЕНО на сайте
+  velours boy          → — НЕ НАЙДЕНО на сайте
+  carbon pro           → https://aprellshop.ru/catalog/uxod-za-kozhej/sredstvo-po-uxodu/carbon-pro
+  poliertuch           → — НЕ НАЙДЕНО на сайте
+  wet wipes            → — НЕ НАЙДЕНО на сайте
+  nilfett              → https://aprellshop.ru/catalog/uxod-za-kozhej/sredstvo-po-uxodu/nilfett
+
+⚠ Не нашли ссылку (осталось текстом):
+  auftragsbürste
+  glanzbürste
+  lack polish
+  poliertuch
+  velours boy
+  wet wipes
+
+Для них: открой раздел ухода на сайте, найди страницу, и впиши ссылку в SEED в начале скрипта — при следующем прогоне подхватится.
