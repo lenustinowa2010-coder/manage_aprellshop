@@ -106,29 +106,68 @@ def build_link_map(crawled):
     return link
 
 
+def strip_links(text):
+    """Возвращаем текст к чистому виду: убираем ранее вставленные <a>…</a>
+    и чиним «выехавшие» из битого прогона хвосты тегов."""
+    if not text:
+        return text
+    # нормальные ссылки: <a ...>Название</a> → Название
+    text = re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', text, flags=re.IGNORECASE | re.DOTALL)
+    # битые хвосты от прошлого бага: '" target="_blank" rel="noopener">' → убрать
+    text = re.sub(r'"\s*target="_blank"\s*rel="noopener"\s*>', '', text)
+    # осиротевшие открывающие/закрывающие теги
+    text = re.sub(r'<a\b[^>]*>', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'</a>', '', text, flags=re.IGNORECASE)
+    # артефакт прошлого бага: 'nilfettNilfett' → 'Nilfett' (одно и то же слово
+    # разного регистра слиплось). Схлопываем повтор названия, оставляя вариант
+    # с заглавной, как в оригинале.
+    for name in PRODUCT_NAMES:
+        dup = re.compile(re.escape(name) + re.escape(name), re.IGNORECASE)
+        text = dup.sub(lambda m, n=name: n[:1].upper() + n[1:], text)
+    text = re.sub(r'\s{2,}', ' ', text).strip()
+    return text
+
+
 def linkify(text, link_map, missing):
-    """Оборачиваем названия средств в тексте в <a>…</a>. Возвращаем html-строку."""
+    """Оборачиваем названия средств в тексте в <a>…</a> за ОДИН проход.
+    Каждый участок текста обрабатывается один раз — внутрь уже вставленных
+    ссылок замена не заходит (иначе теги рвутся). Дубли-названия (nilfett /
+    Nilfett) не задваиваются."""
     if not text or text.strip() == "—":
         return text
-    result = text
-    # заменяем от длинных названий к коротким, чтобы не рвать вложенные
+
+    # 1) собираем все совпадения названий в тексте (регистронезависимо),
+    #    от длинных к коротким, отбрасывая пересекающиеся интервалы.
+    spans = []  # (start, end, name)
+    taken = [False] * (len(text) + 1)
     for name in sorted(PRODUCT_NAMES, key=len, reverse=True):
-        n = norm(name)
-        url = link_map.get(n)
-        # ищем вхождение без учёта регистра, по границам
-        pat = re.compile(re.escape(name), re.IGNORECASE)
-        def repl(m):
-            frag = m.group(0)
-            if url:
-                return f'<a href="{url}" target="_blank" rel="noopener">{frag}</a>'
+        for m in re.finditer(re.escape(name), text, re.IGNORECASE):
+            s, e = m.start(), m.end()
+            if any(taken[s:e]):
+                continue
+            spans.append((s, e, name))
+            for i in range(s, e):
+                taken[i] = True
+
+    if not spans:
+        return text
+
+    # 2) собираем строку заново, вставляя ссылки только на «свободных» участках
+    spans.sort()
+    out = []
+    pos = 0
+    for s, e, name in spans:
+        out.append(text[pos:s])
+        frag = text[s:e]
+        url = link_map.get(norm(name))
+        if url:
+            out.append(f'<a href="{url}" target="_blank" rel="noopener">{frag}</a>')
+        else:
             missing.add(name)
-            return frag
-        # не трогаем то, что уже внутри <a …>…</a>
-        if url and pat.search(result):
-            result = pat.sub(repl, result)
-        elif pat.search(result):
-            missing.add(name)
-    return result
+            out.append(frag)
+        pos = e
+    out.append(text[pos:])
+    return "".join(out)
 
 
 def rebuild_index(data):
@@ -167,7 +206,8 @@ def main():
     changed = 0
     for row in mats:
         if len(row) >= 5 and isinstance(row[4], str):
-            new = linkify(row[4], link_map, missing)
+            clean = strip_links(row[4])          # сначала откат к чистому тексту
+            new = linkify(clean, link_map, missing)
             if new != row[4]:
                 row[4] = new
                 changed += 1
